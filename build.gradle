@@ -1,0 +1,22 @@
+apply plugin : 'java' 
+apply plugin : 'application' 
+apply plugin:  'eclipse'
+
+repositories {
+    jcenter() 
+//    mavenCentral()
+}
+
+dependencies {
+//    compile 'org.lwjgl.lwjgl:lwjgl:2.9.0'
+//    implementation 'com.github.lalyos:jfiglet:0.0.8' 
+//    implementation 'org.jsoup:jfiglet:0.0.8'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.2'
+    implementation 'org.jsoup:jsoup:1.11.+'
+//    		, 'org.jsoup.nodes:Document:1.11.2'
+//            , 'org.jsoup.nodes:Node:1.11.2'
+//            , 'org.jsoup.select:Elements:1.11.2'
+}
+
+// Define the main class for the application
+mainClassName = 'ShorpyParser'
