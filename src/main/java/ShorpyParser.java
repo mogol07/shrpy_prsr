@@ -34,38 +34,39 @@ public class ShorpyParser {
 	/**
 	 * @param args
 	 */
-	private static final String strDirName = "D:\\Downloads"; // folder for saving files
 	private static final String strDescrName = "descript.ion"; // file with description of photo
 
 	public static void main(String[] args) throws IOException {
 
 		// TODO 
 
-		// адрес страницы
+		// Р°РґСЂРµСЃ СЃС‚СЂР°РЅРёС†С‹
 		final String strURL = "http://www.shorpy.com/image/tid/125"; // Ben Shahn
 //		final String strURL = "http://www.shorpy.com/image/tid/209"; // Alfred Eisenstaedt
 //		final String strURL = "http://www.shorpy.com/image/tid/129"; // Arthur Rothstein
 		final String strTaskType = "CreateList";
+		final int intConTimeOut = 10*1000; // timeout is 10 sec
+		final int intTestPage = 0; // limit of parsed pages for test
 
 		switch (strTaskType) {
 		case "CreateList":
 			Document doc = null;
-			// получаем страницу
-			doc = Jsoup.connect(strURL).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(3000)
+			// РїРѕР»СѓС‡Р°РµРј СЃС‚СЂР°РЅРёС†Сѓ
+			doc = Jsoup.connect(strURL).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(intConTimeOut)
 					.post();
 
-			// парсим ответ, который находится в секции wrapper -> wrap3 ->
+			// РїР°СЂСЃРёРј РѕС‚РІРµС‚, РєРѕС‚РѕСЂС‹Р№ РЅР°С…РѕРґРёС‚СЃСЏ РІ СЃРµРєС†РёРё wrapper -> wrap3 ->
 			// content1
-			// -> h1 - ФИО фотографа
-			// -> description - краткая биография
-			// -> pager -> pager-list - список страниц с фотографиями
+			// -> h1 - Р¤РРћ С„РѕС‚РѕРіСЂР°С„Р°
+			// -> description - РєСЂР°С‚РєР°СЏ Р±РёРѕРіСЂР°С„РёСЏ
+			// -> pager -> pager-list - СЃРїРёСЃРѕРє СЃС‚СЂР°РЅРёС† СЃ С„РѕС‚РѕРіСЂР°С„РёСЏРјРё
 			// -> images ->
 
-			// формируем список работ фотографа и его био
+			// С„РѕСЂРјРёСЂСѓРµРј СЃРїРёСЃРѕРє СЂР°Р±РѕС‚ С„РѕС‚РѕРіСЂР°С„Р° Рё РµРіРѕ Р±РёРѕ
 			String strName = doc.select("h1").text();
 			String strDescription = doc.select("div.description").get(1).child(0).text();
 			System.out.println(strName + "\r\n" + strDescription);
-//			задаем счётчик страниц с фотографиями
+//			Р·Р°РґР°РµРј СЃС‡С‘С‚С‡РёРє СЃС‚СЂР°РЅРёС† СЃ С„РѕС‚РѕРіСЂР°С„РёСЏРјРё
 			String strPageCounter = "0";
 			int intTotalPage;
 			String prefix = "?page=";
@@ -82,25 +83,25 @@ public class ShorpyParser {
 			int intPageCounter = 0;
 			do {
 				System.out.println("processing page " + String.valueOf(intPageCounter+1) + " of " + intTotalPage);
-//				обработка фотографий с текущей страницы
+//				РѕР±СЂР°Р±РѕС‚РєР° С„РѕС‚РѕРіСЂР°С„РёР№ СЃ С‚РµРєСѓС‰РµР№ СЃС‚СЂР°РЅРёС†С‹
 				List<Node> sss = doc.select("ul.images").first().childNodes();
 				for (int i = 0; i < sss.size(); i = i + 2) {
 					Document photopage = null;
 					String strImageName = "";
-					// получаем страницу
-					photopage = Jsoup.connect(strURL+"?page=" + intPageCounter).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(3000)
+					// РїРѕР»СѓС‡Р°РµРј СЃС‚СЂР°РЅРёС†Сѓ
+					photopage = Jsoup.connect(strURL+"?page=" + intPageCounter).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(intConTimeOut)
 							.post();					
-					strImageName = photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).childNode(0).toString().split("\\:")[0].replaceAll("&amp;","&"); //краткое наименование
+					strImageName = photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).childNode(0).toString().split("\\:")[0].replaceAll("&amp;","&"); //РєСЂР°С‚РєРѕРµ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ
 					String strImageFullPageUrl = "http://www.shorpy.com"
 							+ photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).attr("href")
 							+ "?size=_original"; // url of full size image
 	
 					Document resultImageFull = Jsoup.connect(strImageFullPageUrl).data("query", "Java").userAgent("Mozilla")
-							.cookie("auth", "token").ignoreContentType(true).timeout(3000).get();
+							.cookie("auth", "token").ignoreContentType(true).timeout(intConTimeOut).get();
 					String strImageFullUrl = resultImageFull.select("img[src$=.jpg]").attr("src");
 	
 					String strImageDescr = resultImageFull.select("div.caption").first().childNode(1).toString()
-							.replace(" &nbsp;", ""); // краткое наименование "очищенное"
+							.replace(" &nbsp;", ""); // РєСЂР°С‚РєРѕРµ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ "РѕС‡РёС‰РµРЅРЅРѕРµ"
 														
 					strImageDescr = strImageDescr.substring(0, strImageDescr.length() - 2);
 					String strPhotoDate = strImageDescr.split("\\.")[0];
@@ -109,13 +110,18 @@ public class ShorpyParser {
 					getImages(strImageFullUrl,(FrmtDate(strPhotoDate) + " " + strImageName), strImageDescr);
 				}
 				intPageCounter++;
-			} while (intPageCounter < intTotalPage);
+			} while (intPageCounter < intTotalPage && intPageCounter < intTestPage);
 			// default: break;
 		}
 
 	}
 
 	private static void getImages(String src, String name, String descr) throws IOException {
+		
+//		String strDirName = "D:\\Downloads"; // folder for saving files (in Windows)
+//		String strDirName = "/home/mogol/Downloads"; // folder for saving files (in Linux)
+		String strDirName = "/app/shrpy_prsr/output/"; // folder for saving files (in Docker image)
+//		String strDirName = System.getProperty("user.home") + "/Downloads/"; //universal path
 //		String folder = null; 
 		
 		// Exctract the name of the image from the src attribute 
@@ -134,7 +140,7 @@ public class ShorpyParser {
 		InputStream in = url.openStream(); 
 		
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(
-				strDirName + "\\" + name + ".jpg")); 
+				strDirName + File.separator + name + ".jpg")); 
 		
 		for (int b; (b = in.read()) != -1;) { 
 			out.write(b); 
@@ -145,7 +151,7 @@ public class ShorpyParser {
 
 //		write desription of photo to file
 		try {
-			Path path = Paths.get(strDirName + "\\" + strDescrName);
+			Path path = Paths.get(strDirName + File.separator + strDescrName);
 			Charset charset = UTF_8;
 			List<String> list = Collections.singletonList("\"" + name + ".jpg" + "\" " + descr);
 		    Files.write(path, list, charset, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
