@@ -40,29 +40,29 @@ public class ShorpyParser {
 
 		// TODO 
 
-		// адрес страницы
+		// pages addresses
 		final String strURL = "http://www.shorpy.com/image/tid/125"; // Ben Shahn
 //		final String strURL = "http://www.shorpy.com/image/tid/209"; // Alfred Eisenstaedt
 //		final String strURL = "http://www.shorpy.com/image/tid/129"; // Arthur Rothstein
 		final String strTaskType = "CreateList";
 		final int intConTimeOut = 10*1000; // timeout is 10 sec
-		final int intTestPage = 0; // limit of parsed pages for test
+//		final int intTestPage = 0; // limit of parsed pages for test
+		final boolean boolIsProd = true;
 
 		switch (strTaskType) {
 		case "CreateList":
 			Document doc = null;
-			// получаем страницу
+			// get page
 			doc = Jsoup.connect(strURL).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(intConTimeOut)
 					.post();
 
-			// парсим ответ, который находится в секции wrapper -> wrap3 ->
-			// content1
-			// -> h1 - ФИО фотографа
-			// -> description - краткая биография
-			// -> pager -> pager-list - список страниц с фотографиями
+			// process answer, which located in section wrapper -> wrap3 -> content1
+			// -> h1 - Photographer's name
+			// -> description - short bio
+			// -> pager -> pager-list - list with his photos pages
 			// -> images ->
 
-			// формируем список работ фотографа и его био
+			// create list of photographies формируем список работ фотографа и его био
 			String strName = doc.select("h1").text();
 			String strDescription = doc.select("div.description").get(1).child(0).text();
 			System.out.println(strName + "\r\n" + strDescription);
@@ -83,15 +83,17 @@ public class ShorpyParser {
 			int intPageCounter = 0;
 			do {
 				System.out.println("processing page " + String.valueOf(intPageCounter+1) + " of " + intTotalPage);
-//				обработка фотографий с текущей страницы
+//				processing photos from current page
 				List<Node> sss = doc.select("ul.images").first().childNodes();
 				for (int i = 0; i < sss.size(); i = i + 2) {
 					Document photopage = null;
 					String strImageName = "";
-					// получаем страницу
+					// get page
 					photopage = Jsoup.connect(strURL+"?page=" + intPageCounter).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(intConTimeOut)
 							.post();					
-					strImageName = photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).childNode(0).toString().split("\\:")[0].replaceAll("&amp;","&"); //краткое наименование
+					strImageName = photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).childNode(0).toString().split("\\:")[0].replaceAll("&amp;","&"); // short name
+					strImageName = strImageName.replace("$", "USD"); 
+					
 					String strImageFullPageUrl = "http://www.shorpy.com"
 							+ photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).attr("href")
 							+ "?size=_original"; // url of full size image
@@ -110,7 +112,7 @@ public class ShorpyParser {
 					getImages(strImageFullUrl,(FrmtDate(strPhotoDate) + " " + strImageName), strImageDescr);
 				}
 				intPageCounter++;
-			} while (intPageCounter < intTotalPage && intPageCounter < intTestPage);
+			} while (intPageCounter < intTotalPage && boolIsProd);
 			// default: break;
 		}
 
