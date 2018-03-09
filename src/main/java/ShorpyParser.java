@@ -175,6 +175,9 @@ public class ShorpyParser {
 		if (PhotoDate.contains(",")) {
 			// We have date with month and day "MMMM DD, YYYY"
 			System.out.println(PhotoDate);
+		} else if (PhotoDate.contains("of")) {
+			// We have date with month only "SEASON of YYYY"
+			newDate = FrmtMonth(PhotoDate.replace(" of", ""));
 		} else if (PhotoDate.contains(" ")) {
 			// We have date with month only "MMMM YYYY"
 			newDate = FrmtMonth(PhotoDate);
