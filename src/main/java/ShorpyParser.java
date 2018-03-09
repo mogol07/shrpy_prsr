@@ -92,8 +92,7 @@ public class ShorpyParser {
 					photopage = Jsoup.connect(strURL+"?page=" + intPageCounter).data("query", "Java").userAgent("Mozilla").cookie("auth", "token").timeout(intConTimeOut)
 							.post();					
 					strImageName = photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).childNode(0).toString().split("\\:")[0].replaceAll("&amp;","&"); // short name
-					strImageName = strImageName.replace("$", "USD"); 
-					
+							
 					String strImageFullPageUrl = "http://www.shorpy.com"
 							+ photopage.select("ul.images").first().childNode(i).childNode(2).childNode(0).attr("href")
 							+ "?size=_original"; // url of full size image
@@ -101,12 +100,16 @@ public class ShorpyParser {
 					Document resultImageFull = Jsoup.connect(strImageFullPageUrl).data("query", "Java").userAgent("Mozilla")
 							.cookie("auth", "token").ignoreContentType(true).timeout(intConTimeOut).get();
 					String strImageFullUrl = resultImageFull.select("img[src$=.jpg]").attr("src");
-	
-					String strImageDescr = resultImageFull.select("div.caption").first().childNode(1).toString()
-							.replace(" &nbsp;", ""); // краткое наименование "очищенное"
-														
+					
+					// Short Name (cleared)
+//					String strImageDescr = resultImageFull.select("div.caption").first().childNode(1).toString()
+//							.replace(" &nbsp;", ""); 
+					String strImageDescr = resultImageFull.select("div.caption").first().textNodes().get(0).text() + resultImageFull.select("div.caption").first().textNodes().get(1).text() ;
 					strImageDescr = strImageDescr.substring(0, strImageDescr.length() - 2);
-					String strPhotoDate = strImageDescr.split("\\.")[0];
+					
+					// get date field of description. All further processing of date in FrmtDate method
+					String strPhotoDate = strImageDescr.split("\\.")[0].trim();
+
 					System.out.println(strImageDescr + "\r\n" + FrmtDate(strPhotoDate) + " " 
 							+ strImageName  + ".jpg \r\n" + strImageFullUrl);
 					getImages(strImageFullUrl,(FrmtDate(strPhotoDate) + " " + strImageName), strImageDescr);
@@ -121,8 +124,8 @@ public class ShorpyParser {
 	private static void getImages(String src, String name, String descr) throws IOException {
 		
 //		String strDirName = "D:\\Downloads"; // folder for saving files (in Windows)
-//		String strDirName = "/home/mogol/Downloads"; // folder for saving files (in Linux)
-		String strDirName = "/app/shrpy_prsr/output/"; // folder for saving files (in Docker image)
+		String strDirName = "/home/mogol/Downloads"; // folder for saving files (in Linux)
+//		String strDirName = "/app/shrpy_prsr/output/"; // folder for saving files (in Docker image)
 //		String strDirName = System.getProperty("user.home") + "/Downloads/"; //universal path
 //		String folder = null; 
 		
@@ -161,12 +164,32 @@ public class ShorpyParser {
 		    //exception handling left as an exercise for the reader
 		}
 	}
-
+	
+	/**
+	 * convert date from description to YYYY-MM-DD format
+	 * @param PhotoDate could be 
+	 * @return "YYYY-MM-DD" string
+	 */
+	private static String FrmtDate(String PhotoDate) {
+		String newDate = "";
+		if (PhotoDate.contains(",")) {
+			// We have date with month and day "MMMM DD, YYYY"
+			System.out.println(PhotoDate);
+		} else if (PhotoDate.contains(" ")) {
+			// We have date with month only "MMMM YYYY"
+			newDate = FrmtMonth(PhotoDate);
+		} else {
+			// We have date with year only "YYYY"
+			newDate = PhotoDate.split(" ")[0].trim();
+		};
+		return newDate;
+	}
+	
 	/**
 	 * check month name and format date accordingly
 	 */
-	private static String FrmtDate(String PhotoDate) {
-		String[] arrPhotoDate = PhotoDate.split(" ");
+	private static String FrmtMonth(String MonthDate) {
+		String[] arrPhotoDate = MonthDate.split(" ");
 		String newDate;
 		if (arrPhotoDate.length > 1) {
 			switch (arrPhotoDate[0]) {
@@ -205,6 +228,18 @@ public class ShorpyParser {
 				break;
 			case "December":
 				newDate = arrPhotoDate[1] + "-" + "12";
+				break;
+			case "Spring":
+				newDate = arrPhotoDate[1] + "-" + "A";
+				break;
+			case "Summer":
+				newDate = arrPhotoDate[1] + "-" + "B";
+				break;
+			case "Autumn":
+				newDate = arrPhotoDate[1] + "-" + "C";
+				break;
+			case "Winter":
+				newDate = arrPhotoDate[1] + "-" + "D";
 				break;
 			default:
 				newDate = arrPhotoDate[1];
