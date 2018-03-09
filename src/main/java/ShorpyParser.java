@@ -108,7 +108,15 @@ public class ShorpyParser {
 					strImageDescr = strImageDescr.substring(0, strImageDescr.length() - 2);
 					
 					// get date field of description. All further processing of date in FrmtDate method
-					String strPhotoDate = strImageDescr.split("\\.")[0].trim();
+					// search a substring with "19" to set as date substring
+					String strPhotoDate = "Not found";
+					int intJ = 0;
+					do {
+						if (strImageDescr.split("\\.")[intJ].contains("19")) {
+							strPhotoDate = strImageDescr.split("\\.")[intJ].replace("\"", "").trim();
+						}
+						intJ++;
+					} while (intJ < strImageDescr.split("\\.").length);
 
 					System.out.println(strImageDescr + "\r\n" + FrmtDate(strPhotoDate) + " " 
 							+ strImageName  + ".jpg \r\n" + strImageFullUrl);
